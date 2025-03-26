@@ -140,6 +140,9 @@
                     document.getElementById("quote").style.display = "block";
                     document.getElementById("energyBtn").style.display = "block";
                     document.getElementById("showJBtn").style.display = "none";
+
+                    // 模擬頁面點擊以觸發 Onclick 廣告
+                    document.dispatchEvent(new Event('click'));
                 }
             };
         }
