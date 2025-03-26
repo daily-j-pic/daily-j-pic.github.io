@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>每日J圖</title>
+    <style>
+        body { 
+            text-align: center; 
+            font-family: Arial; 
+            background: #f0f0f0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+        }
+        #jImage { 
+            max-width: 600px; 
+            border-radius: 10px; 
+            display: none; 
+            margin: 0 auto; 
+        }
+        #energyBtn { 
+            padding: 10px 20px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            display: none; 
+        }
+        .energy-effect { 
+            display: none; 
+            color: #ffcc00; 
+            font-size: 24px; 
+        }
+        #quote { 
+            font-style: italic; 
+            margin: 10px; 
+            display: none; 
+        }
+        #showJBtn { 
+            padding: 15px 30px; 
+            font-size: 18px; 
+            margin-top: 20px; 
+            cursor: pointer; 
+        }
+        #progress { 
+            font-size: 18px; 
+            margin-top: 10px; 
+        }
+        #completeMsg { 
+            font-size: 20px; 
+            color: #ff6600; 
+            display: none; 
+            margin-top: 20px; 
+        }
+        #hint { 
+            font-size: 16px; 
+            color: #666; 
+            margin-top: 5px; 
+        }
+    </style>
+</head>
+<body>
+    <h1>每日J圖</h1>
+    <p id="hint">每天有三次領取J圖的機會，快來試試吧！</p> <!-- 新增提示 -->
+    <img id="jImage" src="https://via.placeholder.com/600x400" alt="今日美女貼圖">
+    <p id="quote">「今天也要充滿活力！」</p>
+    <button id="energyBtn">領取今日能量</button>
+    <p id="energyEffect" class="energy-effect">✨能量+1✨</p>
+    <button id="showJBtn">領取J圖</button>
+    <p id="progress">已領取：0/3</p>
+    <p id="completeMsg">今日J圖已領取完畢，明日再來！</p>
+
+    <script>
+        // Pexels API金鑰
+        const API_KEY = "NuR7dCWFU77cAaCg0I4huujbGO9A9Dcq9f4zr5DUCtiCt5HU7lAwljQh";
+        const quotes = [
+            "今天也要充滿活力！",
+            "美麗的你，值得美好的一天！",
+            "微笑是最好的裝飾！",
+        ];
+
+        // 初始化變數
+        let dailyImages = [];
+        let currentIndex = 0;
+        const maxImages = 3;
+
+        // 檢查並獲取每日三張圖片
+        function fetchDailyJImages() {
+            const today = new Date().toDateString();
+            const lastFetch = localStorage.getItem("lastFetchDate");
+            const storedImages = JSON.parse(localStorage.getItem("dailyImages")) || [];
+            const storedCount = parseInt(localStorage.getItem("claimCount")) || 0;
+
+            if (lastFetch !== today || storedImages.length === 0) {
+                fetch("https://api.pexels.com/v1/search?query=sexy+girl&per_page=80", {
+                    headers: { Authorization: API_KEY }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const photos = data.photos;
+                    dailyImages = [];
+                    while (dailyImages.length < maxImages && photos.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * photos.length);
+                        dailyImages.push(photos[randomIndex].src.large);
+                        photos.splice(randomIndex, 1);
+                    }
+
+                    localStorage.setItem("lastFetchDate", today);
+                    localStorage.setItem("dailyImages", JSON.stringify(dailyImages));
+                    localStorage.setItem("claimCount", "0");
+                    currentIndex = 0;
+                    updateProgress();
+                    setupButton();
+                })
+                .catch(error => console.error("獲取圖片失敗:", error));
+            } else {
+                dailyImages = storedImages;
+                currentIndex = storedCount;
+                updateProgress();
+                if (currentIndex >= maxImages) {
+                    document.getElementById("showJBtn").style.display = "none";
+                    document.getElementById("completeMsg").style.display = "block";
+                } else {
+                    setupButton();
+                }
+            }
+        }
+
+        // 更新進度顯示
+        function updateProgress() {
+            document.getElementById("progress").innerText = `已領取：${currentIndex}/${maxImages}`;
+        }
+
+        // 設置「領取J圖」按鈕行為
+        function setupButton() {
+            document.getElementById("showJBtn").onclick = function() {
+                if (currentIndex < maxImages) {
+                    const imageUrl = dailyImages[currentIndex];
+                    const quoteIndex = Math.floor(Math.random() * quotes.length);
+
+                    document.getElementById("jImage").src = imageUrl;
+                    document.getElementById("jImage").style.display = "block";
+                    document.getElementById("quote").innerText = quotes[quoteIndex];
+                    document.getElementById("quote").style.display = "block";
+                    document.getElementById("energyBtn").style.display = "block";
+                    document.getElementById("showJBtn").style.display = "none";
+                }
+            };
+        }
+
+        // 能量按鈕效果：立即更新次數
+        document.getElementById("energyBtn").onclick = function() {
+            const energyBtn = document.getElementById("energyBtn");
+            const jImage = document.getElementById("jImage");
+            const quote = document.getElementById("quote");
+            const effect = document.getElementById("energyEffect");
+            const showJBtn = document.getElementById("showJBtn");
+
+            jImage.style.display = "none";
+            quote.style.display = "none";
+            energyBtn.style.display = "none";
+            currentIndex++;
+            localStorage.setItem("claimCount", currentIndex.toString());
+            updateProgress();
+            effect.style.display = "block";
+
+            setTimeout(() => {
+                effect.style.display = "none";
+                if (currentIndex < maxImages) {
+                    showJBtn.style.display = "block";
+                } else {
+                    document.getElementById("completeMsg").style.display = "block";
+                }
+            }, 1500);
+        };
+
+        // 頁面載入時執行
+        fetchDailyJImages();
+    </script>
+</body>
+</html>
