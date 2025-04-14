@@ -129,17 +129,23 @@
         }
 
         function setupButton() {
-            document.getElementById("showJBtn").onclick = function() {
+            document.getElementById("showJBtn").onclick = function(event) {
+                // 阻止事件冒泡，避免廣告腳本直接攔截
+                event.stopPropagation();
+
                 if (currentIndex < maxImages) {
                     const imageUrl = dailyImages[currentIndex];
                     const quoteIndex = Math.floor(Math.random() * quotes.length);
 
+                    // 優先顯示圖片
                     document.getElementById("jImage").src = imageUrl;
                     document.getElementById("jImage").style.display = "block";
                     document.getElementById("quote").innerText = quotes[quoteIndex];
                     document.getElementById("quote").style.display = "block";
                     document.getElementById("energyBtn").style.display = "block";
                     document.getElementById("showJBtn").style.display = "none";
+
+                    // 讓 Monetag 腳本自行處理 Popunder（無需手動觸發）
                 }
             };
         }
