@@ -72,7 +72,7 @@
     <p id="completeMsg">今日J圖已領取完畢，明日再來！</p>
 
     <script>
-        const API_KEY = "yNKdbsEAEfvOrCtwzMgrMplMSOMOdkoVy230G85pEsFnfYcfz6RLwcsw";
+        const API_KEY = "NuR7dCWFU77cAaCg0I4huujbGO9A9Dcq9f4zr5DUCtiCt5HU7lAwljQh";
         const quotes = [
             "今天也要充滿活力！",
             "美麗的你，值得美好的一天！",
@@ -130,14 +130,15 @@
 
         function setupButton() {
             document.getElementById("showJBtn").onclick = function(event) {
-                // 阻止事件冒泡，避免廣告腳本直接攔截
+                // 阻止預設行為，避免跳轉
+                event.preventDefault();
                 event.stopPropagation();
 
                 if (currentIndex < maxImages) {
                     const imageUrl = dailyImages[currentIndex];
                     const quoteIndex = Math.floor(Math.random() * quotes.length);
 
-                    // 優先顯示圖片
+                    // 強制顯示圖片
                     document.getElementById("jImage").src = imageUrl;
                     document.getElementById("jImage").style.display = "block";
                     document.getElementById("quote").innerText = quotes[quoteIndex];
@@ -145,7 +146,10 @@
                     document.getElementById("energyBtn").style.display = "block";
                     document.getElementById("showJBtn").style.display = "none";
 
-                    // 讓 Monetag 腳本自行處理 Popunder（無需手動觸發）
+                    // 延遲觸發廣告，確保圖片顯示完成
+                    setTimeout(() => {
+                        document.dispatchEvent(new MouseEvent('click', { bubbles: false }));
+                    }, 100);
                 }
             };
         }
